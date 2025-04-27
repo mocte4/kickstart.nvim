@@ -1,3 +1,9 @@
+--[[m
+EDITS MADE TO MAIN BODY (find them with Normal->'/--m'):
+  - various changes from https://www.youtube.com/watch?v=cLWgjienc_s
+--]]
+
+--m [[]] is lua's way of doing multiline strings. Putting its opening in a comment makes the whole thing inside the comment (https://www.reddit.com/r/neovim/comments/mdwdok/converting_vim_command_to_initlua/)
 --[[
 
 =====================================================================
@@ -652,6 +658,10 @@ require('lazy').setup({
       --  When you add blink.cmp, luasnip, etc. Neovim now has *more* capabilities.
       --  So, we create new capabilities with blink.cmp, and then broadcast that to the servers.
       local capabilities = require('blink.cmp').get_lsp_capabilities()
+      --m:
+      --local capabilities = vim.lsp.protocol.make_client_capabilities()--> from a different version
+      --capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())--> ibid
+      require('lspconfig').gdscript.setup(capabilities)
 
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
@@ -868,7 +878,7 @@ require('lazy').setup({
     },
   },
 
-  { -- You can easily change to a different colorscheme.
+  { -- You can easily change to a different colorscheme. --m LOOK 'ERE
     -- Change the name of the colorscheme plugin below, and then
     -- change the command in the config to whatever the name of that colorscheme is.
     --
@@ -891,7 +901,12 @@ require('lazy').setup({
   },
 
   -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+  {
+    'folke/todo-comments.nvim',
+    event = 'VimEnter',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = { signs = false },
+  },
 
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
@@ -936,17 +951,33 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = {
+        'bash',
+        'c',
+        'diff',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'vim',
+        'vimdoc',
+        'gdscript',
+        'godot_resource',
+        'gdshader',
+      },
       -- Autoinstall languages that are not installed
-      auto_install = true,
+      auto_install = false, --m defaults true
       highlight = {
         enable = true,
         -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
         --  If you are experiencing weird indenting issues, add the language to
         --  the list of additional_vim_regex_highlighting and disabled languages for indent.
+        --m check out what ruby is, the guy didn't have it in his video... is it colour thing?
         additional_vim_regex_highlighting = { 'ruby' },
       },
-      indent = { enable = true, disable = { 'ruby' } },
+      indent = { enable = false, disable = { 'ruby' } }, --m enable defaults true
     },
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
@@ -955,6 +986,8 @@ require('lazy').setup({
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
+
+  { 'habamax/vim-godot', event = 'VimEnter' }, --m
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
@@ -965,11 +998,11 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug',
+  require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.neo-tree',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
@@ -1006,3 +1039,90 @@ require('lazy').setup({
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+--m STUFF I FOUND AROUND THE PLACE:
+
+-- ANTIOVERHIGHLIGHTER (https://www.reddit.com/r/neovim/comments/1ct2w2h/comment/l4bgvn1)
+vim.api.nvim_create_autocmd('CursorMoved', {
+  group = vim.api.nvim_create_augroup('auto-hlsearch', { clear = true }),
+  callback = function()
+    if vim.v.hlsearch == 1 and vim.fn.searchcount().exact_match == 0 then
+      vim.schedule(function()
+        vim.cmd.nohlsearch()
+      end)
+    end
+  end,
+})
+
+-- SERVER MODE CONFIG FOR GODOT (I have no idea but it doesn't work so): (https://simondalvai.org/blog/godot-neovim/)
+-- paths to check for project.godot file
+--local paths_to_check = { '/', '/../' }
+--local is_godot_project = false
+--local godot_project_path = ''
+--local cwd = vim.fn.getcwd()
+
+-- iterate over paths and check
+--for key, value in pairs(paths_to_check) do
+--  if vim.uv.fs_stat(cwd .. value .. 'project.godot') then
+--    is_godot_project = true
+--    godot_project_path = cwd .. value
+--    break
+--  end
+--end
+
+-- check if server is already running in godot project path
+--local is_server_running = vim.uv.fs_stat(godot_project_path .. '/server.pipe')
+-- start server, if not already running
+--if is_godot_project and not is_server_running then
+--  vim.fn.serverstart(godot_project_path .. '/server.pipe')
+--end
+
+-- PLUGS (https://github.com/junegunn/vim-plug)
+-- use :PlugInstall to install plugs
+local vim = vim
+local Plug = vim.fn['plug#']
+vim.call 'plug#begin'
+--Plug 'tpope/vim-sensible'-- placeholder I left in
+--Plug 'sheerun/vim-polyglot'-- broke, idk why and I forget why I have it anyway
+--Plug 'casperstorm/ferra'-- not even sure it's compatible with neovim
+Plug 'rebelot/kanagawa.nvim'
+--Plug 'morhetz/gruvbox'-- redundant due to awesome-vim-colorschemes
+Plug 'ku1ik/vim-monokai'
+Plug 'phanviet/vim-monokai-pro'
+Plug 'Mofiqul/dracula.nvim'
+Plug 'matgd/godotcolor-vim'
+Plug 'armannikoyan/rusty'
+Plug 'rafi/awesome-vim-colorschemes'
+vim.call 'plug#end'
+
+-- COMMANDS
+--[[ these worked but tries to access online repos each time so I did it less hackily by just terminating all vim commands at the bottom of this file, as you can see
+vim.cmd 'PlugInstall' --equivalent of user inputting :PlugInstall
+vim.cmd 'q'
+]]
+--#region
+vim.cmd 'Neotree'
+--m: (broke (https://github.com/ibhagwan/fzf-lua/issues/716, https://github.com/neovim/neovim/issues/26058))
+-- reused to determine colour scheme
+local godotprojectfile = vim.fs.root(0, '/project.godot') --originally: local projectfile = vim.fn.getcwd() .. '/project.godot'
+if godotprojectfile then
+  vim.fn.serverstart './godothost'
+  vim.cmd 'colorscheme godotcolor'
+else
+  vim.cmd 'colorscheme apprentice'
+end
+
+do
+  return
+end -- emulates vimscript finish, which vim-plug won't load properly without (https://github.com/junegunn/vim-plug/issues/613) (https://www.reddit.com/r/neovim/comments/pkgp1q/is_there_a_lua_equivalent_for_the_finish_command/)
+
+--[[
+https://stackoverflow.com/questions/76603175/using-vim-bo-filetype-in-an-if-statement-to-set-filetype-specific-keybinds-in-ne
+Idea: what if the colour scheme used depends on the language/filetype? I'd like:
+- monokai by default
+- godotcolor for GDScript
+- focuspoint for C#
+- tokyonight-night for Lua
+- ferra for Rust (EVENTUALLY)
+DO NOT WASTE TIME ON THIS IN 2025.
+]]

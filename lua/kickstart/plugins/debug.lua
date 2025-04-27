@@ -24,6 +24,7 @@ return {
     -- Add your own debuggers here
     'leoluz/nvim-dap-go',
   },
+
   keys = {
     -- Basic debugging keymaps, feel free to change to your liking!
     {
@@ -95,6 +96,22 @@ return {
       ensure_installed = {
         -- Update this to ensure that you have the debuggers for the langs you want
         'delve',
+      },
+    }
+
+    --m (from vid, where else):
+    dap.adapters.godot = {
+      type = 'server',
+      host = '127.0.0.1',
+      port = 6006,
+    }
+    dap.configurations.gdscript = {
+      {
+        type = 'godot',
+        request = 'launch',
+        name = 'Launch scene',
+        project = '$(workspaceFolder)',
+        launch_scene = true,
       },
     }
 

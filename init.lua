@@ -1093,21 +1093,24 @@ Plug 'Mofiqul/dracula.nvim'
 Plug 'matgd/godotcolor-vim'
 Plug 'armannikoyan/rusty'
 Plug 'rafi/awesome-vim-colorschemes'
+Plug 'mocte4/godotcolour-vim'
+
+Plug 'nvim-tree/nvim-web-devicons'
 vim.call 'plug#end'
 
 -- COMMANDS
---[[ these worked but tries to access online repos each time so I did it less hackily by just terminating all vim commands at the bottom of this file, as you can see
+--[[ these worked but tried to access online repos each time so I did it less hackily by just terminating all vim commands at the bottom of this file, as you can see
 vim.cmd 'PlugInstall' --equivalent of user inputting :PlugInstall
 vim.cmd 'q'
 ]]
 --#region
-vim.cmd 'Neotree'
+vim.cmd 'Neotree' --supposedly better than nvim-tree which is better than nerdtree so I'll leave it I reckon
 --m: (broke (https://github.com/ibhagwan/fzf-lua/issues/716, https://github.com/neovim/neovim/issues/26058))
 -- reused to determine colour scheme
 local godotprojectfile = vim.fs.root(0, '/project.godot') --originally: local projectfile = vim.fn.getcwd() .. '/project.godot'
 if godotprojectfile then
-  vim.fn.serverstart './godothost'
-  vim.cmd 'colorscheme godotcolor'
+  --vim.fn.serverstart './godothost'
+  vim.cmd 'colorscheme godotcolour'
 else
   vim.cmd 'colorscheme apprentice'
 end
@@ -1119,7 +1122,8 @@ end -- emulates vimscript finish, which vim-plug won't load properly without (ht
 --[[
 https://stackoverflow.com/questions/76603175/using-vim-bo-filetype-in-an-if-statement-to-set-filetype-specific-keybinds-in-ne
 Idea: what if the colour scheme used depends on the language/filetype? I'd like:
-- monokai by default
+- apprentice by default
+- monokai for <something I use often>
 - godotcolor for GDScript
 - focuspoint for C#
 - tokyonight-night for Lua
